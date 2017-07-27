@@ -1,10 +1,13 @@
-import os
-import httplib2
-import base64
 from apiclient import discovery
 from oauth2client import client, tools
 from oauth2client.file import Storage
+
+import dateutil.parser
+import httplib2
 import json
+import mail
+import os
+
 
 try:
     import argparse
@@ -16,6 +19,7 @@ SCOPES = "https://www.googleapis.com/auth/gmail.readonly"
 CLIENT_ID = "1030690431676-kqae5can829gp98rt17vkhtrtc2jhols.apps.googleusercontent.com"
 CLIENT_SECRET_FILE = 'client_id.json'
 APPLICATION_NAME = "Spamalyzer"
+MESSAGE_FILENAME = "spamalyzer.ndjson"
 
 
 def get_credentials():
@@ -42,31 +46,37 @@ def main():
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('gmail', 'v1', http=http)
 
-    results = service.users().messages().list(userId="me").execute()
-    messages = results.get('messages', [])
+    next_page_token = None
+    idx = 0
+    start_date = dateutil.parser.parse("01 Jul 2017 00:00:00 +0000")
+    keep_looping = True
 
-    for idx, message_ in enumerate(messages):
-        message = service.users().messages().get(userId="me", id=message_["id"]).execute()
-        # print(json.dumps(message, indent=4))
-        
-        print("Message ID:" + message["id"])
-        print("Snippet:" + message["snippet"])
-        for header in message["payload"]["headers"]:
-            if header["name"] == "Sender":
-                sender_email = header["value"]
-            elif header["name"] == "From":
-                sender_name = header["value"]
-            elif header["name"] == "Subject":
-                subject = header["value"]
+    with open(MESSAGE_FILENAME, "w+") as f:
+        while keep_looping:
+            results = service.users().messages().list(userId="me", pageToken=next_page_token).execute()  # A dict with all the latest email IDs
+            next_page_token = results["nextPageToken"]
+            messages = results.get('messages', [])
 
-        print("Number of parts: " + str(len(message["payload"]["parts"])))
-        for part in message["payload"]["parts"]:
-            print("\n\n\n")
-            print(base64.urlsafe_b64decode(part["body"]["data"]).decode('utf-8'))
-        # print(message["payload"]["headers"])
-        # body = message["payload"]["parts"][0]["body"]["data"]
-        # print(base64.urlsafe_b64decode(body).decode('utf-8'))
-        break
+            for message_ in messages:
+                idx += 1
+                message = service.users().messages().get(userId="me", id=message_["id"]).execute()
+                # message = service.users().messages().get(userId="me", id="15d55e2ecc123ed9").execute()
+                # print(json.dumps(message, indent=4))
+
+                if not mail.is_valid(message):
+                    continue
+
+                email = mail.Mail(message)
+                if email.datetime < start_date:
+                    keep_looping = False
+                    break
+
+                print("{0}: {1} =={2}== \"{3}\" {4}".format(idx, email.sender, email.sender_email, email.subject, email.datetime))
+
+                # Save the JSON to a newline
+                json.dump(email.dict(), f)
+                f.write("\n")
+
     # print(messages)
 
 
