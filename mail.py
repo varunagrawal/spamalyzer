@@ -3,6 +3,7 @@ Class for objects representing Mail
 """
 import base64
 import dateutil.parser
+import html2text
 import json
 
 
@@ -48,8 +49,7 @@ class Mail(object):
                 elif part['mimeType'] == 'text/html':
                     continue
         elif payload["mimeType"] == "text/html":
-            # TODO use html2text to convert html to plaintext
-            self.body = base64.urlsafe_b64decode(payload["body"]["data"]).decode('utf-8')
+            self.body = html2text.html2text(base64.urlsafe_b64decode(payload["body"]["data"]).decode('utf-8'))
         elif payload["mimeType"] == "text/plain":
             self.body = base64.urlsafe_b64decode(payload["body"]["data"]).decode('utf-8')
 
