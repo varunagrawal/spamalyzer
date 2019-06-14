@@ -4,7 +4,7 @@ Visualizations In The Fight Against Email Spam
 
 ## Running Spamalyzer
 
-- Get the `client_secret.json` from the Google API dashboard and keep it in the same location as the `main.py`.
+- Get the `client_secret.json` from the Google API dashboard and keep it in the same location as the `main.py`, renamed as `client_id.json`.
 - Run `python3 main.py`.
 
 ## Resources
