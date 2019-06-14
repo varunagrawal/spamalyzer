@@ -10,14 +10,10 @@ import html2text
 
 def is_valid(message):
     """Check if message is not part of certain invalid labels."""
-    #TODO use set operations to do this more efficiently
-    labels = ["CHAT"]
-    for label in labels:
-        if label in message['labelIds']:
-            return False
-
-    return True
-
+    invalid_labels_set = {"CHAT"}
+    message_labels_set = set(message['labelIds'])
+    # return False is set intersection is empty.
+    return not bool(message_labels_set.intersection(invalid_labels_set))
 
 def b64_to_utf8_decode(b64_str):
     """Decode base64 string to UTF-8."""
@@ -82,7 +78,7 @@ class Mail:
             "sender_email": self.sender_email,
             "subject": self.subject,
             "date": self.datetime.timestamp(),
-            # "body": self.body
+            "body": self.body
         }
         return body
 
