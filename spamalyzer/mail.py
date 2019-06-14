@@ -37,6 +37,8 @@ class Mail:
         self.body = ""
         self.datetime = None
 
+        self.is_unread = "UNREAD" in message['labelIds']
+
         self.parse_headers(message["payload"]["headers"])
         self.parse_body(message["payload"])
 
