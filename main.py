@@ -27,7 +27,7 @@ def main():
     start_date = dateutil.parser.parse("01 Jul 2017 00:00:00 +0000")
     keep_looping = True
 
-    with open(MESSAGE_FILENAME, "w+") as message_file:
+    with open(MESSAGE_FILENAME, "w+") as messages_file:
         while keep_looping:
             # A dict with all the latest email IDs
             results = service.users().messages().list(userId="me",
@@ -44,17 +44,18 @@ def main():
                     continue
 
                 email = mail.Mail(message)
+
                 if email.datetime < start_date:
                     keep_looping = False
                     break
 
-                print_mail(idx, email)
+                print("{0:4}".format(idx), email)
 
                 # Save the JSON to a newline
-                json.dump(email.dict(), message_file)
-                message_file.write("\n")
+                json.dump(email.dict(), messages_file)
+                messages_file.write("\n")
 
-    # print(messages)
+    print("Done going through email!")
 
 
 if __name__ == "__main__":

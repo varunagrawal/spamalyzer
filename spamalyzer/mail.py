@@ -4,7 +4,7 @@ Class for objects representing Mail
 import base64
 import json
 
-import dateutil.parser
+from dateutil import parser as dt_parser, tz
 import html2text
 
 
@@ -14,6 +14,7 @@ def is_valid(message):
     message_labels_set = set(message['labelIds'])
     # return False is set intersection is empty.
     return not bool(message_labels_set.intersection(invalid_labels_set))
+
 
 def b64_to_utf8_decode(b64_str):
     """Decode base64 string to UTF-8."""
@@ -41,15 +42,25 @@ class Mail:
     def parse_headers(self, headers):
         """Parse the mail headers."""
         for header in headers:
-            if header["name"] == "From":
+            header_key = header["name"].lower()
+
+            if header_key == "from":
                 sender_sig = header["value"]
                 signature = sender_sig.split("<")
                 self.sender_email = signature[-1].replace(">", "")
                 self.sender = signature[0].strip()
-            elif header["name"] == "Subject":
+
+            elif header_key == "subject":
                 self.subject = header["value"]
-            elif header["name"] == "Date":
-                self.datetime = dateutil.parser.parse(header["value"])
+
+            elif header_key == "date":
+                # read list of timezone information so that datetime parsing is clean
+                tzinfos = json.load(open("spamalyzer/timezoneinfo.json"))
+                default_tzinfo = tz.gettz("America/New_York")
+
+                self.datetime = dt_parser.parse(header["value"], tzinfos=tzinfos, fuzzy=True)
+                # make timezone aware
+                self.datetime = self.datetime.replace(tzinfo=self.datetime.tzinfo or default_tzinfo)
 
     def parse_body(self, payload):
         """Parse the mail body."""
@@ -68,7 +79,11 @@ class Mail:
             self.body = b64_to_utf8_decode(payload["body"]["data"])
 
     def __str__(self):
-        return ""
+        template = "{0:<30.30} {1:<60} || {2:60.60} || {3:>35}"
+        return template.format(self.sender,
+                               "<{}>".format(self.sender_email),
+                               self.subject,
+                               str(self.datetime))
 
     def dict(self):
         """Convert to dictionary representation."""
@@ -78,7 +93,7 @@ class Mail:
             "sender_email": self.sender_email,
             "subject": self.subject,
             "date": self.datetime.timestamp(),
-            "body": self.body
+            # "body": self.body  # no need to save the heavy body
         }
         return body
 
