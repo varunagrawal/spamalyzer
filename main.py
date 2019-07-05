@@ -30,7 +30,7 @@ def main():
 
     emails = []
 
-    user = service.users().getProfile(userId="me")
+    user = service.users().getProfile(userId="me").execute()
 
     with open(MESSAGE_FILENAME, "w+") as messages_file:
         while keep_looping:
