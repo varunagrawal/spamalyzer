@@ -28,7 +28,7 @@ class Mail:
         self.message_id = message["id"]
         # Mail preview seen after the subject
         self.snippet = message["snippet"]
-        self.sender_email = ""
+        self.sender_address = ""
         self.sender = ""
         self.subject = ""
         self.body = ""
@@ -47,7 +47,7 @@ class Mail:
             if header_key == "from":
                 sender_sig = header["value"]
                 signature = sender_sig.split("<")
-                self.sender_email = signature[-1].replace(">", "")
+                self.sender_address = signature[-1].replace(">", "")
                 self.sender = signature[0].strip()
 
             elif header_key == "subject":
@@ -79,18 +79,19 @@ class Mail:
             self.body = b64_to_utf8_decode(payload["body"]["data"])
 
     def __str__(self):
-        template = "{0:<30.30} {1:<60} || {2:60.60} || {3:>35}"
+        template = "{0:<30.30} {1:<60.60} || {2:60.60} || {3:>35} {4:>7}"
         return template.format(self.sender,
-                               "<{}>".format(self.sender_email),
+                               "<{}>".format(self.sender_address),
                                self.subject,
-                               str(self.datetime))
+                               str(self.datetime),
+                               '\u2611' if self.is_unread else '\u2610')
 
     def dict(self):
         """Convert to dictionary representation."""
         body = {
             "id": self.message_id,
             "sender": self.sender,
-            "sender_email": self.sender_email,
+            "sender_address": self.sender_address,
             "subject": self.subject,
             "date": self.datetime.timestamp(),
             # "body": self.body  # no need to save the heavy body
