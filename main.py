@@ -60,7 +60,7 @@ def main():
                     continue
 
                 if email.is_unread:
-                    emails.append(email.sender_address)
+                    emails.append(email.sender_address.split('@')[-1])
                     print("{0:4}".format(idx), email)
 
                 # Save the JSON to a newline
@@ -71,7 +71,7 @@ def main():
     print("Done going through email!")
 
     counter = statistics.get_count(emails)
-    print(counter.most_common(15))
+    print(counter.most_common(50))
 
 if __name__ == "__main__":
     main()
