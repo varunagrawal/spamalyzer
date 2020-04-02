@@ -11,10 +11,11 @@ from spamalyzer import MESSAGE_FILENAME, google_service, mail, statistics
 
 def print_mail(idx, email):
     """Pretty print the email."""
-    print("{0:3}: {1:<30.30} | {2:<50} \"{3:60.60}\" {4:>35}".format(idx, email.sender,
-                                                                     email.sender_address,
-                                                                     email.subject,
-                                                                     str(email.datetime)))
+    template = "{0:3}: {1:<30.30} | {2:<50} \"{3:60.60}\" {4:>35}"
+    print(template.format(idx, email.sender,
+                          email.sender_address,
+                          email.subject,
+                          str(email.datetime)))
 
 
 def main():
@@ -59,19 +60,19 @@ def main():
                 if email.sender_address == user['emailAddress']:
                     continue
 
-                if email.is_unread:
-                    emails.append(email.sender_address.split('@')[-1])
-                    print("{0:4}".format(idx), email)
+                # if email.is_unread:
+                emails.append(email.sender_address.split('@')[-1])
+                print("{0:4}".format(idx), email)
 
                 # Save the JSON to a newline
                 # json.dump(email.dict(), messages_file)
                 # messages_file.write("\n")
 
-
     print("Done going through email!")
 
     counter = statistics.get_count(emails)
     print(counter.most_common(50))
+
 
 if __name__ == "__main__":
     main()

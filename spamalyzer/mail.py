@@ -48,7 +48,12 @@ class Mail:
                 sender_sig = header["value"]
                 signature = sender_sig.split("<")
                 self.sender_address = signature[-1].replace(">", "")
-                self.sender = signature[0].strip()
+
+                sender_name = signature[0].strip()
+                if len(sender_name) > 0:
+                    self.sender = sender_name
+                else:
+                    self.sender = self.sender_address.split('@')[0]
 
             elif header_key == "subject":
                 self.subject = header["value"]
@@ -58,9 +63,11 @@ class Mail:
                 tzinfos = json.load(open("spamalyzer/timezoneinfo.json"))
                 default_tzinfo = tz.gettz("America/New_York")
 
-                self.datetime = dt_parser.parse(header["value"], tzinfos=tzinfos, fuzzy=True)
+                self.datetime = dt_parser.parse(
+                    header["value"], tzinfos=tzinfos, fuzzy=True)
                 # make timezone aware
-                self.datetime = self.datetime.replace(tzinfo=self.datetime.tzinfo or default_tzinfo)
+                self.datetime = self.datetime.replace(
+                    tzinfo=self.datetime.tzinfo or default_tzinfo)
 
     def parse_body(self, payload):
         """Parse the mail body."""
@@ -79,7 +86,7 @@ class Mail:
             self.body = b64_to_utf8_decode(payload["body"]["data"])
 
     def __str__(self):
-        template = "{0:<30.30} {1:<60.60} || {2:60.60} || {3:>35} {4:>7}"
+        template = "{0:<25.25} {1:<35.35} {3:>15} {4:>4} || {2:.50}"
         return template.format(self.sender,
                                "<{}>".format(self.sender_address),
                                self.subject,
