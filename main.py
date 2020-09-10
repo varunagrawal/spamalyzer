@@ -2,77 +2,36 @@
 
 #pylint: disable=no-member
 
+import argparse
 import json
 
 import dateutil.parser
 
-from spamalyzer import MESSAGE_FILENAME, google_service, mail, statistics
+from spamalyzer import get_emails, statistics
 
 
-def print_mail(idx, email):
-    """Pretty print the email."""
-    template = "{0:3}: {1:<30.30} | {2:<50} \"{3:60.60}\" {4:>35}"
-    print(template.format(idx, email.sender,
-                          email.sender_address,
-                          email.subject,
-                          str(email.datetime)))
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--start_date", "-S ", default="01 Jun 2017 00:00:00 +0000",
+                        help="Datetime after which to collect emails. E.g. 01 Jun 2017 00:00:00 +0000")
+    args = parser.parse_args()
+    return args
 
 
-def main():
+def main(args):
     """Main function."""
-    credentials = google_service.get_credentials()
-    service = google_service.get_service(credentials)
+    print("Starting up")
 
-    next_page_token = None
-    idx = 0
-    start_date = dateutil.parser.parse("01 Jun 2013 00:00:00 +0000")
+    start_date = dateutil.parser.parse("01 Jun 2018 00:00:00 +0000")
 
-    keep_looping = True
+    emails = get_emails(start_date)
 
-    emails = []
-
-    user = service.users().getProfile(userId="me").execute()
-
-    with open(MESSAGE_FILENAME, "w+") as messages_file:
-        while keep_looping:
-            # A dict with all the latest email IDs
-            results = service.users().messages().list(userId="me",
-                                                      pageToken=next_page_token).execute()
-
-            next_page_token = results["nextPageToken"]
-            messages = results.get('messages', [])
-
-            for message_ in messages:
-                idx += 1
-                message = service.users().messages().get(
-                    userId="me", id=message_["id"]).execute()
-
-                if not mail.is_valid(message):
-                    continue
-
-                email = mail.Mail(message)
-
-                if email.datetime < start_date:
-                    keep_looping = False
-                    break
-
-                # ignore emails that are replies from self.
-                if email.sender_address == user['emailAddress']:
-                    continue
-
-                # if email.is_unread:
-                emails.append(email.sender_address.split('@')[-1])
-                print("{0:4}".format(idx), email)
-
-                # Save the JSON to a newline
-                # json.dump(email.dict(), messages_file)
-                # messages_file.write("\n")
-
-    print("Done going through email!")
+    print("########## Done going through email! ########## ")
 
     counter = statistics.get_count(emails)
     print(counter.most_common(50))
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args)

@@ -86,12 +86,12 @@ class Mail:
             self.body = b64_to_utf8_decode(payload["body"]["data"])
 
     def __str__(self):
-        template = "{0:<25.25} {1:<35.35} {3:>15} {4:>4} || {2:.50}"
+        template = "{0:<25.25} {1:<35.35} {3:>15} || {2:.50}" # {4:>4} 
         return template.format(self.sender,
                                "<{}>".format(self.sender_address),
                                self.subject,
                                str(self.datetime),
-                               '\u2611' if self.is_unread else '\u2610')
+                               '☑' if self.is_unread else '☐')
 
     def dict(self):
         """Convert to dictionary representation."""

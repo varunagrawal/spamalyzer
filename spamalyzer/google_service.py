@@ -7,7 +7,9 @@ from apiclient import discovery
 from oauth2client import client, tools
 from oauth2client.file import Storage
 
-from spamalyzer import APPLICATION_NAME, CLIENT_SECRET_FILE, SCOPES
+CLIENT_SECRET_FILE = 'client_id.json'
+APPLICATION_NAME = "Spamalyzer"
+SCOPES = "https://www.googleapis.com/auth/gmail.readonly"
 
 
 def get_flags():
@@ -46,4 +48,7 @@ def get_service(credentials):
     """Get the service object corresponding to GMail."""
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('gmail', 'v1', http=http)
+    user = service.users().getProfile(userId="me").execute()
+    print("Authenticated user: {0}".format(user["emailAddress"]))
+
     return service
