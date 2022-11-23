@@ -1,12 +1,17 @@
 """Spamalyzer init."""
 
+#pylint: disable=no-member, unspecified-encoding
+
 from spamalyzer import google_service, mail
 
+# This is the Google App ID
 CLIENT_ID = "1030690431676-kqae5can829gp98rt17vkhtrtc2jhols.apps.googleusercontent.com"
 MESSAGE_FILENAME = "spamalyzer.json"
 
 
 def get_emails(start_date):
+    """Retrieve all emails from the user account
+    and write to a JSON file `spamalyzer.json`."""
     credentials = google_service.get_credentials()
     service, user = google_service.get_service(credentials)
 

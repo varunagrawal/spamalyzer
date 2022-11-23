@@ -1,5 +1,6 @@
 """Module with code specific to gmail service."""
 
+import argparse
 import os
 
 import httplib2
@@ -15,7 +16,6 @@ SCOPES = "https://www.googleapis.com/auth/gmail.readonly"
 def get_flags():
     """Get argument flags."""
     try:
-        import argparse
         flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
     except ImportError:
         flags = None
@@ -49,6 +49,6 @@ def get_service(credentials):
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('gmail', 'v1', http=http)
     user = service.users().getProfile(userId="me").execute()
-    print("Authenticated user: {0}".format(user["emailAddress"]))
+    print(f"Authenticated user: {user['emailAddress']}")
 
-    return service
+    return service, user

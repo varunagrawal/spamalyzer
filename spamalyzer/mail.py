@@ -1,11 +1,15 @@
 """
 Class for objects representing Mail
 """
+
+#pylint: disable=no-member, unspecified-encoding
+
 import base64
 import json
 
-from dateutil import parser as dt_parser, tz
 import html2text
+from dateutil import parser as dt_parser
+from dateutil import tz
 
 
 def is_valid(message):
@@ -63,8 +67,9 @@ class Mail:
                 tzinfos = json.load(open("spamalyzer/timezoneinfo.json"))
                 default_tzinfo = tz.gettz("America/New_York")
 
-                self.datetime = dt_parser.parse(
-                    header["value"], tzinfos=tzinfos, fuzzy=True)
+                self.datetime = dt_parser.parse(header["value"],
+                                                tzinfos=tzinfos,
+                                                fuzzy=True)
                 # make timezone aware
                 self.datetime = self.datetime.replace(
                     tzinfo=self.datetime.tzinfo or default_tzinfo)
@@ -86,11 +91,9 @@ class Mail:
             self.body = b64_to_utf8_decode(payload["body"]["data"])
 
     def __str__(self):
-        template = "{0:<25.25} {1:<35.35} {3:>15} || {2:.50}" # {4:>4} 
-        return template.format(self.sender,
-                               "<{}>".format(self.sender_address),
-                               self.subject,
-                               str(self.datetime),
+        template = "{0:<25.25} {1:<35.35} {3:>15} || {2:.50}"  # {4:>4}
+        return template.format(self.sender, f"<{self.sender_address}>",
+                               self.subject, str(self.datetime),
                                '☑' if self.is_unread else '☐')
 
     def dict(self):
